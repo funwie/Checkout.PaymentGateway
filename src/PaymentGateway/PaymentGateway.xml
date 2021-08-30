@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>PaymentGateway</name>
+    </assembly>
+    <members>
+        <member name="M:PaymentGateway.Controllers.PaymentsController.RequestPayment(PaymentGateway.Contract.Requests.PaymentRequest,System.Guid,System.String,System.String)">
+            <summary>
+            Request a payment.
+            </summary>
+            <param name="request">The Payment Request</param>
+            <param name="merchantId">The Id of the merchant requesting the payment.</param>
+            <param name="requestIdempotencyKey">Idempotency key to prevent duplicating payments.</param>
+            <response code="201">Payment processed successfully.</response>
+            <response code="202">Payment is processing or requires further action.</response>
+            <response code="400">Payment request with invalid data was sent.</response>
+            <response code="401">Merchant unauthorized.</response>
+            <response code="429">Duplicate payment request detected.</response>
+        </member>
+        <member name="M:PaymentGateway.Controllers.PaymentsController.RetrievePayment(System.Guid,System.Guid,System.String)">
+            <summary>
+            Retrieve a payment.
+            </summary>
+            <param name="paymentId">The id of the payment.</param>
+            <param name = "merchantId" > The Id of the merchant accessing the payment.</param>
+            <response code="200">Payment response.</response>
+            <response code="404">Payment not found.</response>
+        </member>
+    </members>
+</doc>
