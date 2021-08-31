@@ -2,6 +2,7 @@
 using PaymentGateway.Domain;
 using PaymentGateway.Domain.AggregateRoot;
 using PaymentGateway.Domain.Entities;
+using PaymentGateway.Domain.Enumerations;
 using PaymentGateway.Domain.ValueObjects;
 using PaymentGateway.Persistence.DataModels;
 using SQLite;
@@ -10,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PaymentGateway.Domain.Enumerations;
 
 namespace PaymentGateway.Persistence
 {
@@ -29,6 +29,7 @@ namespace PaymentGateway.Persistence
             _databaseAsync.CreateTableAsync<PaymentSourceDataModel>();
             _databaseAsync.CreateTableAsync<PaymentDestinationDataModel>();
             _databaseAsync.CreateTableAsync<CardDataModel>();
+            _databaseAsync.CreateTableAsync<AcquirerResultDataModel>();
             _databaseAsync.CreateTableAsync<TransactionDataModel>();
         }
 
@@ -44,6 +45,7 @@ namespace PaymentGateway.Persistence
                     tran.Insert(Map(payment.Source.Card));
                     tran.Insert(Map(payment.Source));
                     tran.Insert(Map(payment));
+                    tran.Insert(Map(payment.AcquirerResult, payment.Id));
                     tran.InsertAll(Map(payment.Transactions, payment.Id));
                 });
             }
@@ -60,32 +62,51 @@ namespace PaymentGateway.Persistence
 
         public async Task<Payment> GetById(Guid id, CancellationToken cancellationToken)
         {
-            var payment = await _databaseAsync.GetAsync<PaymentDataModel>(id);
-            if (payment is null) return null;
+            var paymentIdToSearch = id.ToString();
+            var payment = await _databaseAsync.Table<PaymentDataModel>()
+                    .Where(payment => payment.Id == paymentIdToSearch).FirstOrDefaultAsync();
+
+            if (payment is null) throw new RepositoryNotFoundException();
 
             var merchantModel = await _databaseAsync.GetAsync<MerchantDataModel>(payment.MerchantId);
             var shopperModel = await _databaseAsync.GetAsync<ShopperDataModel>(payment.ShopperId);
             var paymentSourceModel = await _databaseAsync.GetAsync<PaymentSourceDataModel>(payment.SourceId);
             var cardModel = await _databaseAsync.GetAsync<CardDataModel>(paymentSourceModel.CardId);
             var paymentDestinationModel = await _databaseAsync.GetAsync<PaymentDestinationDataModel>(payment.DestinationId);
-            var transactions = await _databaseAsync.Table<TransactionDataModel>().Where(transaction => transaction.PaymentId == payment.Id).ToListAsync();
+
+            var acquirerResultDataModel = await _databaseAsync.Table<AcquirerResultDataModel>()
+                .Where(result => result.PaymentId == payment.Id).FirstOrDefaultAsync();
+            
+            var transactions = await _databaseAsync.Table<TransactionDataModel>()
+                .Where(transaction => transaction.PaymentId == payment.Id).ToListAsync();
 
             Enum.TryParse(payment.Currency, out SupportedCurrency supportedCurrency);
             Enum.TryParse(payment.Type, out PaymentType paymentType);
-            var paymentAggregate = new Payment(Guid.Parse(payment.Id), 
-                                                payment.Amount,
-                                                supportedCurrency,
-                                                paymentType, 
-                                                payment.Description, 
-                                                payment.Reference,
-                                                Map(transactions));
-
-            paymentAggregate.AddMerchant(Map(merchantModel));
-            paymentAggregate.AddShopper(Map(shopperModel));
-            paymentAggregate.AddSource(Map(paymentSourceModel, cardModel));
-            paymentAggregate.AddDestination(Map(paymentDestinationModel));
+            var paymentAggregate = new Payment(Guid.Parse(payment.Id),
+                payment.Amount,
+                payment.Approved,
+                payment.Description,
+                payment.Reference,
+                supportedCurrency,
+                paymentType,
+                payment.Status,
+                payment.RequestedOn,
+                Map(paymentSourceModel, cardModel),
+                Map(paymentDestinationModel),
+                Map(merchantModel),
+                Map(shopperModel),
+                Map(acquirerResultDataModel),
+                Map(transactions));
 
             return paymentAggregate;
+        }
+
+        public async Task<Merchant> GetMerchantById(Guid merchantId, CancellationToken cancellationToken)
+        {
+            var merchantIdToSearch = merchantId.ToString();
+            var model = await _databaseAsync.Table<MerchantDataModel>()
+                .Where(merchant => merchant.Id == merchantIdToSearch).FirstOrDefaultAsync();
+            return model is null ? null : Map(model);
         }
 
         private static Merchant Map(MerchantDataModel merchantModel)
@@ -136,6 +157,13 @@ namespace PaymentGateway.Persistence
                                           destinationType, 
                                           bankAccount,
                                           Guid.Parse(destination.MerchantId));
+        }
+
+        private static AcquirerResult Map(AcquirerResultDataModel model)
+        {
+            if (model is null) return null;
+
+            return new AcquirerResult(model.Name, model.Approved, model.Reference, model.Status, model.PerformedOn, model.Amount);
         }
 
         private static List<Transaction> Map(List<TransactionDataModel> transactions)
@@ -250,6 +278,23 @@ namespace PaymentGateway.Persistence
                 City = card.BillingAddress?.City,
                 Postcode = card.BillingAddress?.Postcode,
                 Country = card.BillingAddress?.Country
+            };
+        }
+
+        private static AcquirerResultDataModel Map(AcquirerResult acquirerResult, Guid paymentId)
+        {
+            if (acquirerResult is null) return null;
+
+            return new AcquirerResultDataModel
+            {
+                Id = Guid.NewGuid().ToString(),
+                PaymentId = paymentId.ToString(),
+                Name = acquirerResult.Name,
+                Approved = acquirerResult.Approved,
+                Amount = acquirerResult.Amount,
+                Reference = acquirerResult.Reference,
+                Status = acquirerResult.Status,
+                PerformedOn = acquirerResult.PerformedOn
             };
         }
 
