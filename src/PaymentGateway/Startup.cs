@@ -15,7 +15,7 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using PaymentGateway.Application.Payments.Commands;
-using PaymentGateway.Application.Payments.Commands.Validators;
+using PaymentGateway.Application.Payments.Commands.Validation;
 
 namespace PaymentGateway
 {

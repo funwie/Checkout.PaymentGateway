@@ -21,17 +21,22 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentGateway.Contract", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentGateway.IntegrationTests", "tests\PaymentGateway.IntegrationTests\PaymentGateway.IntegrationTests.csproj", "{FFC3005B-51FD-4BBF-B233-DCBAF8D49113}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardPaymentAcquirerBank.Sdk", "src\CardPaymentAcquirerBank.Sdk\CardPaymentAcquirerBank.Sdk.csproj", "{F60332FA-38DB-49A1-8D9C-6345FB780089}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CardPaymentAcquirerBank.Sdk", "src\CardPaymentAcquirerBank.Sdk\CardPaymentAcquirerBank.Sdk.csproj", "{F60332FA-38DB-49A1-8D9C-6345FB780089}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Checkout.ApiFaker", "tests\Checkout.ApiFaker\Checkout.ApiFaker.csproj", "{77BC0391-DD22-4287-B616-9CFB47C8735D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Checkout.ApiFaker", "tests\Checkout.ApiFaker\Checkout.ApiFaker.csproj", "{77BC0391-DD22-4287-B616-9CFB47C8735D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Checkout.Functional", "src\Checkout.Functional\Checkout.Functional.csproj", "{BD00BB3C-27A7-4F3C-8E49-11B71075041E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Checkout.Functional", "src\Checkout.Functional\Checkout.Functional.csproj", "{BD00BB3C-27A7-4F3C-8E49-11B71075041E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentGateway.Application.Tests", "tests\PaymentGateway.Application.Tests\PaymentGateway.Application.Tests.csproj", "{1BA11676-B0B8-44EA-8039-9E05E137290B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentGateway.Application.Tests", "tests\PaymentGateway.Application.Tests\PaymentGateway.Application.Tests.csproj", "{1BA11676-B0B8-44EA-8039-9E05E137290B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentGateway.Domain.Tests", "tests\PaymentGateway.Domain.Tests\PaymentGateway.Domain.Tests.csproj", "{D00DBEF9-91FA-481D-A5CB-5B8DD2E24821}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentGateway.Domain.Tests", "tests\PaymentGateway.Domain.Tests\PaymentGateway.Domain.Tests.csproj", "{D00DBEF9-91FA-481D-A5CB-5B8DD2E24821}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaymentGateway.Tests", "tests\PaymentGateway.Tests\PaymentGateway.Tests.csproj", "{5DB714FF-291F-4DF4-B4E5-1CAFFCC22F10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PaymentGateway.Tests", "tests\PaymentGateway.Tests\PaymentGateway.Tests.csproj", "{5DB714FF-291F-4DF4-B4E5-1CAFFCC22F10}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F7195684-365C-4D98-B78C-36EE18DBA75E}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PaymentGateway.Application.Payments.Commands;
-using PaymentGateway.Application.Payments.Commands.Validators;
+using PaymentGateway.Application.Payments.Commands.Validation;
 using PaymentGateway.Application.Payments.Queries;
 using PaymentGateway.Contract.Enumerations;
 using PaymentGateway.Contract.Requests;
@@ -13,6 +13,8 @@ using PaymentGateway.Domain.Entities;
 using PaymentGateway.Domain.Enumerations;
 using PaymentGateway.Domain.ValueObjects;
 using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using PaymentSourceType = PaymentGateway.Contract.Enumerations.PaymentSourceType;
 using PaymentType = PaymentGateway.Contract.Enumerations.PaymentType;
@@ -22,7 +24,7 @@ namespace PaymentGateway.Controllers
     [Route("[controller]")]
     [ApiController]
     [Produces("application/json")]
-    [Consumes("application/json")]
+    [Consumes("application/json")] 
     public class PaymentsController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -44,19 +46,18 @@ namespace PaymentGateway.Controllers
         /// <response code="202">Payment is processing or requires further action.</response>
         /// <response code="400">Payment request with invalid data was sent.</response>
         /// <response code="401">Merchant unauthorized.</response>
-        /// <response code="429">Duplicate payment request detected.</response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
         public async Task<IActionResult> RequestPayment([FromBody] PaymentRequest request,
                                                         [FromHeader] Guid merchantId,
                                                         [FromHeader] string requestIdempotencyKey,
-                                                        [FromHeader(Name = "x-requestid")] string requestId)
+                                                        [FromHeader(Name = "x-requestid")] string requestId,
+                                                        CancellationToken cancellationToken)
         {
-            _logger.LogDebug($"Processing payment request {requestId}");
+            _logger.LogInformation("Processing payment request {requestId}", requestId);
 
             if (Guid.Empty.Equals(merchantId)) return Unauthorized();
             if (request is null)
@@ -66,19 +67,25 @@ namespace PaymentGateway.Controllers
             Result<PaymentResult, ValidationError> requestPaymentResult;
             try
             {
-                requestPaymentResult = await _mediator.Send(createPaymentCommand);
+                requestPaymentResult = await _mediator.Send(createPaymentCommand, cancellationToken);
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception,$"Failed to request payment {requestId}");
-                throw;
+                _logger.LogError(exception,"Failed to process payment request {requestId}", requestId);
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
             }
 
             if (requestPaymentResult.IsSuccess is false)
                 return new BadRequestObjectResult(requestPaymentResult.Error);
 
+            _logger.LogInformation($"Payment processed {requestId}");
+
             var paymentResult = requestPaymentResult.Success;
-            return new CreatedResult($"/payments/{paymentResult.PaymentId}", paymentResult);
+            var paymentUri = $"/payments/{paymentResult.PaymentId}";
+
+            return paymentResult.Approved.HasValue
+                ? new CreatedResult(paymentUri, paymentResult)
+                : new AcceptedResult(paymentUri, paymentResult);
         }
 
         /// <summary>
@@ -87,29 +94,31 @@ namespace PaymentGateway.Controllers
         /// <param name="paymentId">The id of the payment.</param>
         /// <param name = "merchantId" > The Id of the merchant accessing the payment.</param>
         /// <response code="200">Payment response.</response>
+        /// <response code="401">Merchant unauthorized.</response>
         /// <response code="404">Payment not found.</response>
         [HttpGet("{paymentId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RetrievePayment(Guid paymentId,
                                                         [FromHeader] Guid merchantId,
-                                                        [FromHeader(Name = "x-requestid")] string requestId)
+                                                        [FromHeader(Name = "x-requestid")] string requestId,
+                                                        CancellationToken cancellationToken)
         {
-            _logger.LogDebug($"Retrieving payment {requestId}");
+            _logger.LogDebug("Retrieving payment {paymentId} {requestId}", paymentId, requestId);
             if (Guid.Empty.Equals(merchantId)) return Unauthorized();
 
             var retrievePaymentQuery = new RetrievePaymentQuery(paymentId, merchantId);
+            var retrievePaymentResult = await _mediator.Send(retrievePaymentQuery, cancellationToken);
+            
+            if (retrievePaymentResult.IsSuccess)
+                return Ok(Map(retrievePaymentResult.Success));
 
-            PaymentProjection paymentProjection;
-            try
+            return retrievePaymentResult.Error switch
             {
-                paymentProjection = await _mediator.Send(retrievePaymentQuery);
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception);
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-
-            return paymentProjection is null ? NotFound() : Ok(Map(paymentProjection));
+                RetrievePaymentQueryError.PaymentNotFound => NotFound(),
+                _ => StatusCode(StatusCodes.Status500InternalServerError)
+            };
         }
 
         private static RequestPaymentCommand CreateRequestPaymentCommand(PaymentRequest request, Guid merchantId, string requestIdempotencyKey)
@@ -180,13 +189,14 @@ namespace PaymentGateway.Controllers
                 Type = payment.Type,
                 Reference = payment.Reference,
                 Description = payment.Description,
+                RequestedOn = payment.RequestedOn,
                 Card = new CardResponse
                 {
                     Id = card.Id.ToString(),
                     FullName = card.FullName,
                     CompanyName = card.CompanyName,
-                    MaskedCardNumber = card.CardNumber,
-                    MaskedCvv = card.Cvv,
+                    MaskedCardNumber = card.MaskedCardNumber,
+                    MaskedCvv = card.MaskedCvv,
                     ExpiryMonth = card.ExpiryMonth,
                     ExpiryYear = card.ExpiryYear,
                     BillingAddress = new Contract.Models.Address
@@ -214,7 +224,21 @@ namespace PaymentGateway.Controllers
                         Postcode = shopper.ShippingAddress?.Postcode,
                         Country = shopper.ShippingAddress?.Country
                     }
-                }
+                },
+                Acquirer = new AcquirerResponse
+                {
+                    Reference = payment.Acquirer?.Reference,
+                    PerformedOn = payment.Acquirer?.PerformedOn
+                },
+                Transactions = payment.Transactions.Select(transaction => new TransactionResponse
+                {
+                    Id = transaction.Id.ToString(),
+                    Amount = transaction.Amount,
+                    Approved = transaction.Approved,
+                    Type = transaction.Type,
+                    Reference = transaction.Reference,
+                    PerformedOn = transaction.PerformedOn
+                })
             };
         }
 
