@@ -51,14 +51,8 @@ namespace PaymentGateway.Application.Payments.Commands
             // The section exist just as a way to fake getting merchant's info for the payment request
             // This will actually go to the merchant service to get the destination account and billing description
             // There is assumption here that this fake service always returns the merchant
-            var merchant = await _paymentRepository.GetMerchantById(request.MerchantId, cancellationToken);
-            MerchantResponse merchantResponse = null;
-            if (merchant is null)
-            {
-                merchantResponse = await _merchantService.GetMerchant(request.MerchantId, cancellationToken);
-                merchant = new Merchant(merchantResponse.Id, merchantResponse.Name);
-            }
-            
+            var merchantResponse = await _merchantService.GetMerchant(request.MerchantId, cancellationToken);
+            var merchant = new Merchant(merchantResponse.Id, merchantResponse.Name);
             var paymentDestination = new PaymentDestination(Guid.NewGuid(), PaymentDestinationType.BankAccount,Map(merchantResponse?.BankAccount), merchant.Id);
 
             paymentAggregate.AddSource(payment.Source);

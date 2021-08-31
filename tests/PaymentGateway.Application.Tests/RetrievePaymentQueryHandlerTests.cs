@@ -47,8 +47,6 @@ namespace PaymentGateway.Application.Tests
             var existingPayment = CreatePayment();
             _paymentRepositoryMock.Setup(service => service.GetById(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(existingPayment);
-            _paymentRepositoryMock.Setup(repo => repo.GetMerchantById(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(null as Merchant);
 
             var expectedPayment = Map(existingPayment);
 

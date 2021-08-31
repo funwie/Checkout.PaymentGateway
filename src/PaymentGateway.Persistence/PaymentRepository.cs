@@ -35,11 +35,16 @@ namespace PaymentGateway.Persistence
 
         public async Task Add(Payment payment)
         {
+            var merchant = await GetMerchantById(payment.Merchant.Id);
             try
             {
                 await _databaseAsync.RunInTransactionAsync(tran =>
                 {
-                    tran.Insert(Map(payment.Merchant));
+                    if (merchant is null)
+                    {
+                        tran.Insert(Map(payment.Merchant));
+                    }
+                    
                     tran.Insert(Map(payment.Destination));
                     tran.Insert(Map(payment.Shopper));
                     tran.Insert(Map(payment.Source.Card));
@@ -101,12 +106,11 @@ namespace PaymentGateway.Persistence
             return paymentAggregate;
         }
 
-        public async Task<Merchant> GetMerchantById(Guid merchantId, CancellationToken cancellationToken)
+        private async Task<MerchantDataModel> GetMerchantById(Guid merchantId)
         {
             var merchantIdToSearch = merchantId.ToString();
-            var model = await _databaseAsync.Table<MerchantDataModel>()
+            return await _databaseAsync.Table<MerchantDataModel>()
                 .Where(merchant => merchant.Id == merchantIdToSearch).FirstOrDefaultAsync();
-            return model is null ? null : Map(model);
         }
 
         private static Merchant Map(MerchantDataModel merchantModel)
