@@ -4,18 +4,18 @@ using System.Net.Http;
 
 namespace PaymentGateway.IntegrationTests
 {
-    internal class AcquireBankTestApi
+    internal class AcquirerBankTestApi
     {
         private readonly ApiServerBuilder _builder;
 
-        public AcquireBankTestApi()
+        public AcquirerBankTestApi()
         {
             _builder = new ApiServerBuilder();
         }
 
         public ApiServer Build() => _builder.Build();
 
-        public AcquireBankTestApi WithAcquirePaymentEndpoint(HttpStatusCode responseStatusCode, string expectedContent)
+        public AcquirerBankTestApi WithAcquirePaymentEndpoint(HttpStatusCode responseStatusCode, string expectedContent)
         {
             _builder.WithEndpoint("/acquire", HttpMethod.Post, responseStatusCode, "application/json", expectedContent);
 
