@@ -76,3 +76,7 @@ A payment gateway API and a acquiring bank fake api simulator to fully test the 
 - High Availability and Security are the most critical features of this system so the most performant technologies will be considered
 - Technologies include Databases, Virtual Machines, Containers, Load Balancing, Auto Horizontal scaling, Message queues, Retry and Circuit breaker policies, and many more
 
+### Sanbox of sample
+![Sample of Get Sanbox](https://github.com/funwie/Checkout.PaymentGateway/blob/master/imgs/sanbox.png)
+
+
