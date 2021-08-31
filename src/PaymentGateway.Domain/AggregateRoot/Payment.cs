@@ -34,8 +34,7 @@ namespace PaymentGateway.Domain.AggregateRoot
                        SupportedCurrency currency, 
                        PaymentType type, 
                        string description, 
-                       string reference, 
-                       List<Transaction> transactions = null)
+                       string reference)
         {
             base.Id = id;
             Amount = amount;
@@ -46,6 +45,39 @@ namespace PaymentGateway.Domain.AggregateRoot
             RequestedOn = DateTime.UtcNow;
             Status = PaymentStatus.Processing;
 
+            _transactions = new List<Transaction>();
+        }
+
+        public Payment(Guid id,
+                        decimal amount,
+                        bool? approved,
+                        string description,
+                        string reference,
+                        SupportedCurrency currency,
+                        PaymentType type,
+                        string status,
+                        DateTime requestedOn,
+                        PaymentSource source,
+                        PaymentDestination destination,
+                        Merchant merchant,
+                        Shopper shopper,
+                        AcquirerResult acquirerResult,
+                        List<Transaction> transactions = null)
+        {
+            base.Id = id;
+            Amount = amount;
+            Approved = approved;
+            Description = description;
+            Reference = reference;
+            Currency = currency;
+            Type = type;
+            Status = status;
+            RequestedOn = requestedOn;
+            Source = source;
+            Destination = destination;
+            Merchant = merchant;
+            Shopper = shopper;
+            AcquirerResult = acquirerResult;
             _transactions = transactions ?? new List<Transaction>();
         }
 
