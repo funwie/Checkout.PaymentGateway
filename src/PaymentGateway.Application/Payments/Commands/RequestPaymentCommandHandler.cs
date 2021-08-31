@@ -10,7 +10,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Checkout.Functional;
-using PaymentGateway.Application.Payments.Commands.Validators;
+using PaymentGateway.Application.Payments.Commands.Validation;
 using BankAccount = PaymentGateway.Application.MerchantService.BankAccount;
 
 namespace PaymentGateway.Application.Payments.Commands
@@ -47,21 +47,36 @@ namespace PaymentGateway.Application.Payments.Commands
                                                                     payment.Description, 
                                                                     payment.Reference);
 
-            var merchantResponse = await _merchantService.GetMerchant(request.MerchantId, cancellationToken);
-            var merchant = new Merchant(merchantResponse.Id, merchantResponse.Name);
-            var paymentDestination = new PaymentDestination(Guid.NewGuid(), PaymentDestinationType.BankAccount,Map(merchantResponse.BankAccount), merchant.Id);
+
+            // The section exist just as a way to fake getting merchant's info for the payment request
+            // This will actually go to the merchant service to get the destination account and billing description
+            // There is assumption here that this fake service always returns the merchant
+            var merchant = await _paymentRepository.GetMerchantById(request.MerchantId, cancellationToken);
+            MerchantResponse merchantResponse = null;
+            if (merchant is null)
+            {
+                merchantResponse = await _merchantService.GetMerchant(request.MerchantId, cancellationToken);
+                merchant = new Merchant(merchantResponse.Id, merchantResponse.Name);
+            }
+            
+            var paymentDestination = new PaymentDestination(Guid.NewGuid(), PaymentDestinationType.BankAccount,Map(merchantResponse?.BankAccount), merchant.Id);
 
             paymentAggregate.AddSource(payment.Source);
             paymentAggregate.AddMerchant(merchant);
             paymentAggregate.AddShopper(payment.Shopper);
             paymentAggregate.AddDestination(paymentDestination);
 
-            var acquirerResponse = await _paymentAcquiringService.AcquirePayment(paymentAggregate, cancellationToken);
+            var acquirePaymentResult = await _paymentAcquiringService.AcquirePayment(paymentAggregate, cancellationToken);
 
-            var acquirerResult = new AcquirerResult(acquirerResponse.Name, acquirerResponse.Approved,
-                acquirerResponse.Reference, acquirerResponse.Status, acquirerResponse.PerformedOn, acquirerResponse.Amount);
-            paymentAggregate.Complete(acquirerResult);
+            if (acquirePaymentResult.IsSuccess)
+            {
+                var acquirerResponse = acquirePaymentResult.Success;
+                var acquirerResult = new AcquirerResult(acquirerResponse.Name, acquirerResponse.Approved,
+                    acquirerResponse.Reference, acquirerResponse.Status, acquirerResponse.PerformedOn, acquirerResponse.Amount);
 
+                paymentAggregate.Complete(acquirerResult);
+            }
+            
             await _paymentRepository.Add(paymentAggregate);
 
             return new PaymentResult

@@ -62,6 +62,8 @@ namespace PaymentGateway.Application.AcquiringService
 
         private static AcquirerResponse Map(CardPaymentAcquirerResponse acquirerResponse)
         {
+            if (acquirerResponse is null) return null;
+
             return new AcquirerResponse
             {
                 Name = acquirerResponse.Name,

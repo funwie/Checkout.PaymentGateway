@@ -1,4 +1,4 @@
-﻿namespace PaymentGateway.Application.Payments.Commands.Validators
+﻿namespace PaymentGateway.Application.Payments.Commands.Validation
 {
     public class FieldError
     {

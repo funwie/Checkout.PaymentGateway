@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using System;
 using Checkout.Functional;
-using PaymentGateway.Application.Payments.Commands.Validators;
+using PaymentGateway.Application.Payments.Commands.Validation;
 
 namespace PaymentGateway.Application.Payments.Commands
 {

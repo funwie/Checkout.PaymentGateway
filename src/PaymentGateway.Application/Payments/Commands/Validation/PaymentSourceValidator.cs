@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using PaymentGateway.Domain.Entities;
 
-namespace PaymentGateway.Application.Payments.Commands.Validators
+namespace PaymentGateway.Application.Payments.Commands.Validation
 {
     public class PaymentSourceValidator : AbstractValidator<PaymentSource>
     {

@@ -13,6 +13,7 @@ namespace PaymentGateway.Application.Payments.Queries
         public string Status { get; set; }
         public string Reference { get; set; }
         public string Description { get; set; }
+        public DateTime RequestedOn { get; set; }
         public ShopperProjection Shopper { get; set; }
         public CardProjection Card { get; set; }
         public AcquirerProjection Acquirer { get; set; }

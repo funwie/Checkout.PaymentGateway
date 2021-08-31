@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using FluentValidation.Results;
 
-namespace PaymentGateway.Application.Payments.Commands.Validators
+namespace PaymentGateway.Application.Payments.Commands.Validation
 {
     public class ValidationError
     {

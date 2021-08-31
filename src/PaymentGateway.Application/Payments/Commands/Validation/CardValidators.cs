@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using PaymentGateway.Domain.Entities;
 
-namespace PaymentGateway.Application.Payments.Commands.Validators
+namespace PaymentGateway.Application.Payments.Commands.Validation
 {
     public class CardValidator :  AbstractValidator<Card>
     {
@@ -28,16 +28,16 @@ namespace PaymentGateway.Application.Payments.Commands.Validators
                 .WithMessage("Credit card number is invalid.");
 
             RuleFor(card => card.Cvv)
-                .NotEmpty()
-                .WithMessage("Card cvv is required.");
+                .Matches(@"^[0-9]{3,4}$")
+                .WithMessage("Invalid cvv value.");
 
             RuleFor(card => card.ExpiryMonth)
-                .NotEmpty()
-                .WithMessage("Id invalid");
+                .Matches(@"^[0-9]{2}$")
+                .WithMessage("Invalid expiry month.");
 
             RuleFor(card => card.ExpiryYear)
-                .NotEmpty()
-                .WithMessage("Id invalid");
+                .Matches(@"^[0-9]{2,4}$")
+                .WithMessage("Invalid expiry year.");
         }
     }
 }
