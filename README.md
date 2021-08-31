@@ -16,11 +16,13 @@ A payment gateway API and a acquiring bank fake api simulator to fully test the 
 - The IdempotencyKey was to prevent duplication payments, but feature is not implementated.
 - The RequestId is to correlate the payment request as it is going through different services.
 - The open api documentation will have more information about the usage of the endpoint
+- Empty merchantId returns Unauthorized
 
 ### Task 1b - Retrieve a Payment Endpoint
 - Send the paymentId and the merchantId to retrieve a payment.
 - The merchantId is to ensure merchant retrieve only their payments. Simulates authentication.
 - The open api documentation will have more information about the usage of the endpoint.
+- Empty merchantId returns Unauthorized
 
 ### Task 2 - Simulate the Acquiring bank in integration tests
 - Created a Checkout.ApiFaker library that is used in the integration tests to simulate the Acquiring bank api.

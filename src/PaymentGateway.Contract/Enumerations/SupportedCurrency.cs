@@ -2,6 +2,9 @@
 
 namespace PaymentGateway.Contract.Enumerations
 {
+    /// <summary>
+    /// Three letter currency symbol
+    /// </summary>
     public enum Currency
     {
         [EnumMember(Value = "GBP")]
