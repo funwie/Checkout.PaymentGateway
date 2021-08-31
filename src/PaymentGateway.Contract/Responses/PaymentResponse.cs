@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PaymentGateway.Contract.Responses
 {
@@ -12,6 +13,7 @@ namespace PaymentGateway.Contract.Responses
         public string Status { get; set; }
         public string Reference { get; set; }
         public string Description { get; set; }
+        public DateTime RequestedOn { get; set; }
         public ShopperResponse Shopper { get; set; }
         public CardResponse Card { get; set; }
         public AcquirerResponse Acquirer { get; set; }

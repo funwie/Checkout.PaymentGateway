@@ -11,12 +11,6 @@ namespace PaymentGateway.Contract.Enumerations
         EUR = 978,
 
         [EnumMember(Value = "USD")]
-        USD = 840,
-
-        [EnumMember(Value = "JPY")]
-        JPY = 392,
-        
-        [EnumMember(Value = "CNY")]
-        CNY = 156
+        USD = 840
     }
 }
