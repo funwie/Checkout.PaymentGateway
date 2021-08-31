@@ -7,7 +7,7 @@ A payment gateway API and a acquiring bank fake api simulator to fully test the 
 - Tested using Nunit and XUnit frameworks
 
 ### Task 1a - Payment Request Endpoint
-- Send a payment request with the payment details and include MerchantId, IdempotencyKey and RequestId headers.
+- Send a payment request with the payment details and include MerchantId, optional IdempotencyKey and optional RequestId headers.
 - The MerchantId is a way to link payments to Merchants since Auth is not implemented for now. 
 - Also, there is a fake merchant service that uses the merchantId to get a merchant's details (name and bank account) for the payment acquiring.
 - Implementation assumes that multiple payment types require different payment acquirers. See Acquirer factory.
