@@ -7,11 +7,11 @@ A payment gateway API and a acquiring bank fake api simulator to fully test the 
 - Tested using Nunit and XUnit frameworks
 
 ### Task 1a - Payment Request Endpoint
-- Send a payment request with the payment details and include MerchantId, IdempotencyKey and RequestId headers.
+- Send a payment request with the payment details and include MerchantId, optional IdempotencyKey and optional RequestId headers.
 - The MerchantId is a way to link payments to Merchants since Auth is not implemented for now. 
 - Also, there is a fake merchant service that uses the merchantId to get a merchant's details (name and bank account) for the payment acquiring.
 - Implementation assumes that multiple payment types require different payment acquirers. See Acquirer factory.
-- The payment details, card details, and merchant bank account and sent to the acquirer.
+- The payment details, card details, and merchant bank account are sent to the acquirer.
 - The Domain project is a basic implementation of DDD. It's not close to perfect lol.
 - The IdempotencyKey was to prevent duplication payments, but feature is not implementated.
 - The RequestId is to correlate the payment request as it is going through different services.
@@ -64,7 +64,7 @@ A payment gateway API and a acquiring bank fake api simulator to fully test the 
 - OR open the solution folder in terminal and run `dotnet test`
 
 ### Improvements
-- Serious Refactoring to clean the code, especially the mappings and error handling and logging
+- Serious refactoring to clean the code, especially the mappings and error handling and logging
 - Add unit tests for more test cases
 - Change to persistence stack to a better technology. SQLite was used to make the exercise portable
 
@@ -73,6 +73,6 @@ A payment gateway API and a acquiring bank fake api simulator to fully test the 
 - This can be generated from the Acquiring bank OpenAPI spec (if exist)
 
 ### Cloud Technologies to Consider
-- High Availability is a core feature of this system so the most performant technologies will be considered
+- High Availability and Security are the most critical features of this system so the most performant technologies will be considered
 - Technologies include Databases, Virtual Machines, Containers, Load Balancing, Auto Horizontal scaling, Message queues, Retry and Circuit breaker policies, and many more
 
